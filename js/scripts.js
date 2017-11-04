@@ -1,6 +1,7 @@
 ymaps.ready(init);
 
 var myMap,
+    collectionMarkers,
     myPlacemark;
 
 function init(){     
@@ -9,18 +10,26 @@ function init(){
         zoom: 7
     });
 
-    renderPoints(myMap);
+    collectionMarkers = new ymaps.GeoObjectCollection({}, {
+        preset: "islands#redIcon"
+    });
+
+    myMap.geoObjects.add(collectionMarkers);
+
+    renderSavedPoints();
 
     myMap.events.add('click', function (e) {
         var coords = e.get('coords');
         console.log('lat:', coords[0], 'lng:', coords[1]);
 
-        addPoint({
+        var placemark = new ymaps.Placemark([coords[0], coords[1]]); 
+
+        collectionMarkers.add(placemark);  
+
+        addToStoragePoint({
             lat: coords[0],
             lng: coords[1]
-        });
-
-        renderPoint(myMap, coords[0], coords[1]);        
+        });       
     });
 };
 
@@ -28,27 +37,21 @@ function getPoints() {
     return localStorage.points ? JSON.parse(localStorage.points) : [];
 };
 
-function addPoint(pointObj) {
-    console.log('addPoint start');
+function addToStoragePoint(pointObj) {
+    console.log('addToStoragePoint start');
     var points = getPoints();
     points.push(pointObj);
     localStorage.points = JSON.stringify(points);
 };
 
-function renderPoints(myMap) {
+function renderSavedPoints() {
+    console.log('renderSavedPoints start', collectionMarkers);
     var points = getPoints();
 
-    points.forEach((point) => {
+    points.forEach((point) => {        
         // console.log('lat:', point.lat, 'lng:', point.lng);
-        renderPoint(myMap, point.lat, point.lng);
+        var placemark = new ymaps.Placemark([point.lat, point.lng]);         
+        collectionMarkers.add(placemark);
     });
 };
 
-function renderPoint(myMap, lat, lng) {
-    var placemark = new ymaps.Placemark([lat, lng]);         
-    myMap.geoObjects.add(placemark);
-
-    placemark.events.add('contextmenu', function (e) {
-        console.log(e);
-    });    
-};
