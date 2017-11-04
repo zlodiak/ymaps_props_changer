@@ -1,7 +1,6 @@
 ymaps.ready(init);
 
 var myMap,
-    myCollection,
     myPlacemark;
 
 function init(){     
@@ -10,20 +9,18 @@ function init(){
         zoom: 7
     });
 
-    myCollection = new ymaps.GeoObjectCollection ({},
-      { geoObjectDraggable: true }
-    );
+    renderPoints(myMap);
 
     myMap.events.add('click', function (e) {
         var coords = e.get('coords');
         console.log('lat:', coords[0], 'lng:', coords[1]);
- 
-        var placemark = new ymaps.Placemark([coords[0], coords[1]]);  
-        this.myCollection.add(placemark);       
-        myMap.geoObjects.add(this.myCollection);
-        console.log(this.myCollection);              
-          
-        addPoint();            
+
+        addPoint({
+            lat: coords[0],
+            lng: coords[1]
+        });
+
+        renderPoint(myMap, coords[0], coords[1]);        
     });
 };
 
@@ -31,8 +28,27 @@ function getPoints() {
     return localStorage.points ? JSON.parse(localStorage.points) : [];
 };
 
-function addPoint() {
-    console.log(myCollection);
+function addPoint(pointObj) {
+    console.log('addPoint start');
     var points = getPoints();
-    localStorage.points = JSON.stringify(myCollection);
+    points.push(pointObj);
+    localStorage.points = JSON.stringify(points);
+};
+
+function renderPoints(myMap) {
+    var points = getPoints();
+
+    points.forEach((point) => {
+        // console.log('lat:', point.lat, 'lng:', point.lng);
+        renderPoint(myMap, point.lat, point.lng);
+    });
+};
+
+function renderPoint(myMap, lat, lng) {
+    var placemark = new ymaps.Placemark([lat, lng]);         
+    myMap.geoObjects.add(placemark);
+
+    placemark.events.add('contextmenu', function (e) {
+        console.log(e);
+    });    
 };
