@@ -12,7 +12,7 @@ function init(){
 
     collectionMarkers = new ymaps.GeoObjectCollection({}, {
         preset: "islands#redIcon"
-    });
+    }); 
 
     myMap.geoObjects.add(collectionMarkers);
 
@@ -22,8 +22,7 @@ function init(){
         var coords = e.get('coords');
         console.log('lat:', coords[0], 'lng:', coords[1]);
 
-        var placemark = new ymaps.Placemark([coords[0], coords[1]]); 
-        addRightClickEvent(placemark);   
+        var placemark = new ymaps.Placemark([coords[0], coords[1]]);    
         collectionMarkers.add(placemark);  
 
         addToStoragePoint({
@@ -31,6 +30,30 @@ function init(){
             lng: coords[1]
         });       
     });
+
+    collectionMarkers.events.add('contextmenu', function(e) {
+       console.log(e.get('target'));
+
+        var pointLat = e.get('coords')[0],
+            pointLng = e.get('coords')[1];
+
+        console.log('right click', e.get('coords'), pointLat, pointLng);   
+        
+        var points = getPoints(),
+            newPoints = [];
+
+        points.forEach((point) => {        
+            console.log('lat:', point.lat, 'lng:', point.lng);
+            if(point.lat != pointLat && point.lng != pointLng ) {
+                console.log('add!!');
+                newPoints.push(point);
+            } else {
+                console.log('del!!');
+            }
+        }); 
+
+        localStorage.points = JSON.stringify(newPoints);                  
+    });       
 };
 
 function getPoints() {
@@ -50,34 +73,8 @@ function renderSavedPoints() {
 
     points.forEach((point) => {        
         // console.log('lat:', point.lat, 'lng:', point.lng);
-        var placemark = new ymaps.Placemark([point.lat, point.lng]);    
-        addRightClickEvent(placemark);     
+        var placemark = new ymaps.Placemark([point.lat, point.lng]);         
         collectionMarkers.add(placemark);
     });
-};
-
-function addRightClickEvent(placemark) {
-    placemark.events.add('contextmenu', function (e) {
-        var pointLat = e.get('coords')[0],
-            pointLng = e.get('coords')[1];
-
-        console.log('right click', e.get('coords'), pointLat, pointLng);        
-        var points = getPoints(),
-            newPoints = [];
-
-        points.forEach((point) => {        
-            console.log('lat:', point.lat, 'lng:', point.lng);
-            if(point.lat != pointLat && point.lng != pointLng ) {
-                console.log('add!!');
-                newPoints.push(point);
-            } else {
-                console.log('del!!');
-            }
-        }); 
-
-        localStorage.points = JSON.stringify(newPoints);     
-
-
-    });     
 };
 
